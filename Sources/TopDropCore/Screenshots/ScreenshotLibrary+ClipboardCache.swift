@@ -7,6 +7,9 @@ import UniformTypeIdentifiers
 
 // Implementation details remain actor-isolated; no additional public storage API.
 extension ScreenshotLibrary {
+    /// Imports one preferred image per logical pasteboard item, normalized
+    /// to a metadata-free PNG in the encrypted session cache.
+    @discardableResult
     public func importClipboardImages(from clipboardItem: ClipboardItem) throws -> [ScreenshotItem] {
         var imported: [ScreenshotItem] = []
         for (logicalIndex, payloadItem) in clipboardItem.payload.items.enumerated() {

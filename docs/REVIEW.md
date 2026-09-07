@@ -40,6 +40,10 @@ The complete custom Swift runner passes **165/165** tests locally.
 
 - 165 Swift regressions, strict formatter and debug app build: passed locally.
 - Build-lock 3/3; atomic publisher 7/7; exact-target runtime policy 3/3: passed.
+- Isolated install/reinstall/backup/invalid-source/symlink tests: 5/5 passed.
+- Clean-source validation exposed Foundation's temporary-path normalization;
+  release helpers now compare actual filesystem paths. A CI-only watch-test
+  timing assumption was replaced with a bounded wait for the real transition.
 - Source credential/path/generated-file audit: passed (heuristic, not formal).
 - Release/source rebuild and GitHub CI outcomes are reported in the delivery
   commit/task. Package verification does not prove real-device behavior.

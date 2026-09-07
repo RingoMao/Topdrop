@@ -16,6 +16,7 @@ done
 /usr/libexec/PlistBuddy -c 'Print NSScreenCaptureUsageDescription' "${APP}/Contents/Info.plist" >/dev/null
 [[ -d "${APP}/Contents/Resources/TopDrop_TopDropApp.bundle" ]] || exit 1
 for ZIP in TopDrop.app.zip TopDrop-source.zip; do /usr/bin/unzip -tq "${DIST}/${ZIP}"; done
+"${SCRIPT_DIRECTORY}/TestAppInstallation.sh" "${APP}"
 TEST_ROOT="$(/usr/bin/mktemp -d /private/tmp/topdrop-source-check.XXXXXX)"
 cleanup() {
     [[ "${TEST_ROOT}" == /private/tmp/topdrop-source-check.* && ! -L "${TEST_ROOT}" ]] && /bin/rm -rf -- "${TEST_ROOT}"

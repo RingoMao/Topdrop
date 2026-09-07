@@ -20,9 +20,12 @@ struct AtomicArtifactPublisherInvocation {
         let projectRoot = arguments[0]
         let stageName = arguments[1]
         let publicName = arguments[2]
-        let standardizedRoot = URL(fileURLWithPath: projectRoot, isDirectory: true)
-            .standardizedFileURL.path
-        guard projectRoot.hasPrefix("/"), projectRoot == standardizedRoot,
+        // Foundation rewrites /private/tmp to /tmp even though realpath uses
+        // /private/tmp. Validate the actual filesystem path, not URL display form.
+        let resolvedRoot = realpath(projectRoot, nil)
+        defer { free(resolvedRoot) }
+        guard projectRoot.hasPrefix("/"), let resolvedRoot,
+            projectRoot == String(cString: resolvedRoot),
             projectRoot != "/"
         else {
             try publisherFail("atomic publisher refused a non-canonical project root")

@@ -813,7 +813,12 @@ private func testClipboardArrivalWatch() async throws {
     try expectEqual(itemID, arrivalID)
 
     monitor.beginArrivalWatch(duration: .milliseconds(5))
-    try await Task.sleep(for: .milliseconds(20))
+    // The main executor can be delayed on a shared CI runner. Await the
+    // observable transition with a bound, not an assumed scheduling latency.
+    let timeout = ContinuousClock.now.advanced(by: .seconds(2))
+    while monitor.snapshot.arrivalWatch != .timedOut && ContinuousClock.now < timeout {
+        try await Task.sleep(for: .milliseconds(10))
+    }
     try expectEqual(monitor.snapshot.arrivalWatch, .timedOut)
 
     monitor.setPaused(true)

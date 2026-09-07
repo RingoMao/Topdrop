@@ -141,6 +141,8 @@ extension ScreenshotLibrary {
         return restored
     }
 
+    /// Writes a flattened PNG without changing the original or editable JSON.
+    @discardableResult
     public func saveCopy(
         id: UUID,
         annotations snapshot: AnnotationDocumentSnapshot

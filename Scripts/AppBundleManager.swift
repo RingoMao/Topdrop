@@ -26,7 +26,7 @@ struct AppBundleManager {
             }
             let mode = args[0]
             if mode == "trash", args.count == 2 {
-                let target = URL(fileURLWithPath: args[1]).standardizedFileURL
+                let target = URL(fileURLWithPath: args[1])
                 try validate(target); try requireStopped(target)
                 var trashed: NSURL?
                 try fm.trashItem(at: target, resultingItemURL: &trashed)
@@ -34,14 +34,14 @@ struct AppBundleManager {
                 return
             }
             guard mode == "install", args.count == 3 else { throw SafetyError("Invalid operation") }
-            let source = URL(fileURLWithPath: args[1]).standardizedFileURL
-            let target = URL(fileURLWithPath: args[2]).standardizedFileURL
+            let source = URL(fileURLWithPath: args[1])
+            let target = URL(fileURLWithPath: args[2])
             guard target.lastPathComponent == "TopDrop.app",
                 target.path != source.path,
                 !source.path.hasPrefix(target.path + "/")
             else { throw SafetyError("Invalid installation target") }
             let parent = target.deletingLastPathComponent()
-            guard parent.resolvingSymlinksInPath().path == parent.path,
+            guard canonicalPath(parent.path) == parent.path,
                 fm.fileExists(atPath: parent.path)
             else { throw SafetyError("Installation parent must exist and not be symbolic") }
             try validate(source); try checkSignature(source); try requireStopped(target)

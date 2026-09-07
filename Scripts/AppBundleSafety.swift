@@ -1,9 +1,15 @@
 import Darwin
 import Foundation
 
+func canonicalPath(_ path: String) -> String {
+    guard let resolved = realpath(path, nil) else { return path }
+    defer { free(resolved) }
+    return String(cString: resolved)
+}
+
 /// Exact executable paths, not process names: other TopDrop checkouts may keep running.
 func requireStopped(_ bundle: URL) throws {
-    let prefix = bundle.resolvingSymlinksInPath().standardizedFileURL.path + "/"
+    let prefix = canonicalPath(bundle.path) + "/"
     let count = proc_listallpids(nil, 0)
     guard count > 0 else { throw SafetyError("Could not inspect running processes") }
     var pids = [pid_t](repeating: 0, count: Int(count) + 256)
@@ -14,7 +20,7 @@ func requireStopped(_ bundle: URL) throws {
         var buffer = [CChar](repeating: 0, count: 4 * Int(MAXPATHLEN))
         let size = buffer.withUnsafeMutableBytes { proc_pidpath(pid, $0.baseAddress, UInt32($0.count)) }
         if size > 0 {
-            let executable = URL(fileURLWithPath: String(cString: buffer)).resolvingSymlinksInPath().path
+            let executable = canonicalPath(String(cString: buffer))
             if executable.hasPrefix(prefix) { throw SafetyError("Quit the target TopDrop app before replacing it") }
         }
     }

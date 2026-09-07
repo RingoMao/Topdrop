@@ -410,11 +410,6 @@ public actor ScreenshotLibrary {
         return imported
     }
 
-    /// Imports at most one preferred image representation from each logical
-    /// pasteboard item. Inline image data wins; an image file URL is used only
-    /// when that logical item has no usable inline representation. Every result
-    /// is normalized to a metadata-free PNG in the session cache.
-    @discardableResult
     public func item(id: UUID) throws -> ScreenshotItem {
         guard let item = allItems.first(where: { $0.id == id }) else {
             throw ScreenshotLibraryError.screenshotNotFound(id)
@@ -567,9 +562,6 @@ public actor ScreenshotLibrary {
         emitUpdate()
     }
 
-    /// Writes an annotated, flattened PNG into the managed library while the
-    /// imported original and its editable JSON remain untouched.
-    @discardableResult
     func fileSystemDidChange() {
         scheduleScan()
     }
