@@ -57,7 +57,12 @@ struct SettingsView: View {
                 )
                 valueSlider("Top-edge activation zone", value: activationDistanceBinding, range: 1...12, suffix: "pt")
                 valueSlider("Reveal threshold", value: revealThresholdBinding, range: 10...120, suffix: "pt")
-                valueSlider("Hide threshold", value: hideThresholdBinding, range: 10...120, suffix: "pt")
+                valueSlider("Hide threshold (top edge)", value: hideThresholdBinding, range: 10...240, suffix: "pt")
+                Text(
+                    "Scroll inside the tray to browse. To close, move to the screen's top edge and scroll up firmly. Clicking outside still closes the tray."
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
                 valueSlider("Gesture cooldown", value: cooldownBinding, range: 0...2, suffix: "s")
             }
             Section("System") {

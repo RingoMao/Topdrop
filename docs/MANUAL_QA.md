@@ -7,7 +7,10 @@ with the exact packaged app from `dist/TopDrop.app`.
 
 - [ ] Trackpad and mouse wheel down-scroll reveal; natural scrolling is
       normalized and momentum is ignored.
-- [ ] Up-scroll, Escape, outside click, menu command, and Hide dismiss correctly.
+- [ ] Firm up-scroll at the screen's top edge closes; down-scroll opening effort is unchanged.
+- [ ] Scroll Notes/Clipboard and their scrollbars vigorously without closing, including 24 pt edge slack.
+- [ ] Move to the screen edge during a content gesture: no close until a fresh gesture or wheel idle gap.
+- [ ] Escape, outside click (including the scroll-only buffer), menu command, and Hide still dismiss correctly.
 - [ ] Test every connected display, including negative origins, vertical
       stacking, portrait, square, notches, full screen, Spaces, Stage Manager,
       menu-bar auto-hide, and display hot-plug.

@@ -49,7 +49,102 @@ let gestureTests: [UnitTest] = [
         )
         try expectEqual(
             recognizer.process(
-                gestureSample(time: 1, delta: 12), trayIsVisible: true, pointerIsInsideVisibleTray: true), .hide)
+                gestureSample(time: 1, delta: 12), trayIsVisible: true), .hide)
+    },
+    UnitTest("Gesture: defaults preserve reveal effort and require a stronger close") {
+        let config = TopEdgeGestureConfiguration()
+        try expectEqual(config.revealThreshold, 42)
+        try expectEqual(config.hideThreshold, 84)
+        var recognizer = TopEdgeGestureRecognizer(configuration: config)
+        try expect(recognizer.process(gestureSample(time: 1, delta: 42), trayIsVisible: true) == nil)
+        try expect(recognizer.process(gestureSample(time: 1.1, delta: 41), trayIsVisible: true) == nil)
+        try expectEqual(recognizer.process(gestureSample(time: 1.2, delta: 1), trayIsVisible: true), .hide)
+    },
+    UnitTest("Gesture: content and scrollbar scroll never close the tray") {
+        for precise in [true, false] {
+            var recognizer = TopEdgeGestureRecognizer(configuration: .init(cooldown: 0))
+            for index in 0..<20 {
+                var sample = gestureSample(time: 1 + Double(index) * 0.05, delta: 100, precise: precise)
+                sample.pointer.y = 600
+                try expect(recognizer.process(sample, trayIsVisible: true, pointerIsInsideVisibleTray: true) == nil)
+            }
+        }
+    },
+    UnitTest("Gesture: content gesture cannot turn into close after pointer reaches top") {
+        var recognizer = TopEdgeGestureRecognizer(configuration: .init(cooldown: 0))
+        var content = gestureSample(time: 1, delta: 10, phase: .began)
+        content.pointer.y = 600
+        try expect(recognizer.process(content, trayIsVisible: true, pointerIsInsideVisibleTray: true) == nil)
+        try expect(recognizer.process(gestureSample(time: 1.1, delta: 200), trayIsVisible: true) == nil)
+        try expect(recognizer.process(gestureSample(time: 1.2, delta: 200, momentum: true), trayIsVisible: true) == nil)
+        try expect(recognizer.process(gestureSample(time: 1.3, delta: 0, phase: .ended), trayIsVisible: true) == nil)
+        try expectEqual(
+            recognizer.process(gestureSample(time: 1.4, delta: 84, phase: .began), trayIsVisible: true), .hide)
+    },
+    UnitTest("Gesture: coarse content sequence needs idle gap before top-edge closing") {
+        var recognizer = TopEdgeGestureRecognizer(configuration: .init(cooldown: 0))
+        let content = gestureSample(time: 1, delta: 1, precise: false, phase: .none)
+        try expect(recognizer.process(content, trayIsVisible: true, pointerIsInsideVisibleTray: true) == nil)
+        try expect(
+            recognizer.process(gestureSample(time: 1.1, delta: 7, precise: false, phase: .none), trayIsVisible: true)
+                == nil)
+        try expectEqual(
+            recognizer.process(gestureSample(time: 2, delta: 7, precise: false, phase: .none), trayIsVisible: true),
+            .hide)
+    },
+    UnitTest("Gesture: leaving top edge discards partial close distance") {
+        var recognizer = TopEdgeGestureRecognizer(configuration: .init(cooldown: 0))
+        try expect(recognizer.process(gestureSample(time: 1, delta: 60), trayIsVisible: true) == nil)
+        var away = gestureSample(time: 1.1, delta: 100)
+        away.pointer.y = 700
+        try expect(recognizer.process(away, trayIsVisible: true) == nil)
+        try expect(recognizer.process(gestureSample(time: 1.2, delta: 30), trayIsVisible: true) == nil)
+    },
+    UnitTest("Gesture: legacy close default upgrades without changing opening preferences") {
+        let data = Data(#"{"activationDistance":6,"revealThreshold":55,"hideThreshold":28,"cooldown":1}"#.utf8)
+        let config = try JSONDecoder().decode(TopEdgeGestureConfiguration.self, from: data)
+        try expectEqual(config.revealThreshold, 55)
+        try expectEqual(config.activationDistance, 6)
+        try expectEqual(config.cooldown, 1)
+        try expectEqual(config.hideThreshold, 84)
+        let custom = TopEdgeGestureConfiguration(revealThreshold: 31, hideThreshold: 110)
+        let roundTrip = try JSONDecoder().decode(TopEdgeGestureConfiguration.self, from: JSONEncoder().encode(custom))
+        try expectEqual(roundTrip, custom)
+    },
+    UnitTest("Gesture: scrollbar protection has 24-point hit slop but preserves screen edge") {
+        for origin in [CGPoint.zero, CGPoint(x: -1440, y: 900)] {
+            let screen = CGRect(origin: origin, size: gestureTestFrame.size)
+            let tray = CGRect(x: origin.x + 12, y: origin.y + 350, width: 1416, height: 520)
+            for offset in [CGPoint(x: -20, y: 100), CGPoint(x: 1436, y: 100), CGPoint(x: 600, y: -20)] {
+                try expect(
+                    TrayScrollProtection.contains(
+                        CGPoint(x: tray.minX + offset.x, y: tray.minY + offset.y),
+                        trayFrame: tray, screenFrame: screen, activationDistance: 4))
+            }
+            try expect(
+                !TrayScrollProtection.contains(
+                    CGPoint(x: tray.minX - 30, y: tray.midY), trayFrame: tray, screenFrame: screen,
+                    activationDistance: 4))
+            let nearlyFullHeight = CGRect(x: origin.x + 4, y: origin.y + 100, width: 1432, height: 794)
+            try expect(
+                !TrayScrollProtection.contains(
+                    CGPoint(x: screen.midX, y: screen.maxY - 2), trayFrame: nearlyFullHeight,
+                    screenFrame: screen, activationDistance: 4))
+        }
+        try expect(
+            !TrayScrollProtection.contains(
+                .zero, trayFrame: .zero, screenFrame: gestureTestFrame, activationDistance: 4))
+    },
+    UnitTest("Gesture: scrolling content during reveal cooldown remains protected") {
+        var recognizer = TopEdgeGestureRecognizer()
+        try expectEqual(
+            recognizer.process(gestureSample(time: 1, delta: -42), trayIsVisible: false),
+            .reveal(screenIdentifier: "main"))
+        try expect(
+            recognizer.process(
+                gestureSample(time: 1.1, delta: 10), trayIsVisible: true, pointerIsInsideVisibleTray: true) == nil)
+        try expect(recognizer.process(gestureSample(time: 1.4, delta: 10), trayIsVisible: true) == nil)
+        try expect(recognizer.process(gestureSample(time: 1.8, delta: 100), trayIsVisible: true) == nil)
     },
     UnitTest("Gesture: cooldown and display changes reset state") {
         var recognizer = TopEdgeGestureRecognizer(

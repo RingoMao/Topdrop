@@ -219,6 +219,7 @@ public struct TopEdgeGestureRecognizer: Sendable {
     private var upwardDistance = 0.0
     private var lastActionTime = -Double.greatestFiniteMagnitude
     private var lastSampleTime: TimeInterval?
+    private var protectsCurrentScroll = false
 
     public init(configuration: TopEdgeGestureConfiguration = .init()) {
         self.configuration = configuration
@@ -229,6 +230,7 @@ public struct TopEdgeGestureRecognizer: Sendable {
         downwardDistance = 0
         upwardDistance = 0
         lastSampleTime = nil
+        protectsCurrentScroll = false
     }
 
     public mutating func process(
@@ -253,6 +255,15 @@ public struct TopEdgeGestureRecognizer: Sendable {
             activeScreenIdentifier = sample.screenIdentifier
         }
         lastSampleTime = sample.timestamp
+
+        // Content scrolling wins, even during the post-reveal cooldown. Keep
+        // ownership until a new gesture/idle gap so moving to the menu bar
+        // mid-scroll cannot turn a content gesture into a dismissal.
+        if trayIsVisible && pointerIsInsideVisibleTray {
+            protectsCurrentScroll = true
+            upwardDistance = 0
+            return nil
+        }
 
         guard sample.timestamp - lastActionTime >= configuration.cooldown else {
             return nil
@@ -287,7 +298,7 @@ public struct TopEdgeGestureRecognizer: Sendable {
             return .reveal(screenIdentifier: sample.screenIdentifier)
         }
 
-        guard pointerIsInsideVisibleTray || isAtTopEdge else {
+        guard isAtTopEdge, !protectsCurrentScroll else {
             upwardDistance = 0
             return nil
         }

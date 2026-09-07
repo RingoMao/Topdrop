@@ -112,7 +112,13 @@ final class EdgeEventMonitor {
         if let action = recognizer.process(
             sample,
             trayIsVisible: trayIsVisibleHere,
-            pointerIsInsideVisibleTray: visibleTrayFrame().contains(pointer)
+            pointerIsInsideVisibleTray: trayIsVisibleHere
+                && TrayScrollProtection.contains(
+                    pointer,
+                    trayFrame: visibleTrayFrame(),
+                    screenFrame: screen.frame,
+                    activationDistance: recognizer.configuration.activationDistance
+                )
         ) {
             onAction(action, screen)
         }
