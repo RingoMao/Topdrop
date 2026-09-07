@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleDisplayName</key>
+    <string>TopDrop</string>
+    <key>CFBundleExecutable</key>
+    <string>TopDrop</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.personal.TopDrop</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>TopDrop</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>26.0</string>
+    <key>LSUIElement</key>
+    <true/>
+    <key>NSAppleEventsUsageDescription</key>
+    <string>TopDrop uses Apple Notes automation to manage the dedicated TopDrop notes folder you select.</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSScreenCaptureUsageDescription</key>
+    <string>TopDrop reads the pixels beneath the pointer only while you use Screen Color Picker, so it can show a live magnified preview and hexadecimal color value.</string>
+</dict>
+</plist>

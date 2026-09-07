@@ -1,0 +1,33 @@
+name: macOS source validation
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: topdrop-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: macos-26
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Verify source and regressions
+        run: Scripts/verify.sh
+      - name: Build hardened local package
+        run: Scripts/build-app.sh
+      - name: Verify package and independently build source archive
+        run: Scripts/verify-package.sh dist --rebuild-source
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: TopDrop-source-preview
+          path: |
+            dist/TopDrop.app.zip
+            dist/TopDrop-source.zip
+          if-no-files-found: error
+          retention-days: 7
