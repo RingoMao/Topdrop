@@ -54,10 +54,10 @@ let gestureTests: [UnitTest] = [
     UnitTest("Gesture: defaults preserve reveal effort and require a stronger close") {
         let config = TopEdgeGestureConfiguration()
         try expectEqual(config.revealThreshold, 42)
-        try expectEqual(config.hideThreshold, 84)
+        try expectEqual(config.hideThreshold, 50)
         var recognizer = TopEdgeGestureRecognizer(configuration: config)
         try expect(recognizer.process(gestureSample(time: 1, delta: 42), trayIsVisible: true) == nil)
-        try expect(recognizer.process(gestureSample(time: 1.1, delta: 41), trayIsVisible: true) == nil)
+        try expect(recognizer.process(gestureSample(time: 1.1, delta: 7), trayIsVisible: true) == nil)
         try expectEqual(recognizer.process(gestureSample(time: 1.2, delta: 1), trayIsVisible: true), .hide)
     },
     UnitTest("Gesture: content and scrollbar scroll never close the tray") {
@@ -79,7 +79,7 @@ let gestureTests: [UnitTest] = [
         try expect(recognizer.process(gestureSample(time: 1.2, delta: 200, momentum: true), trayIsVisible: true) == nil)
         try expect(recognizer.process(gestureSample(time: 1.3, delta: 0, phase: .ended), trayIsVisible: true) == nil)
         try expectEqual(
-            recognizer.process(gestureSample(time: 1.4, delta: 84, phase: .began), trayIsVisible: true), .hide)
+            recognizer.process(gestureSample(time: 1.4, delta: 50, phase: .began), trayIsVisible: true), .hide)
     },
     UnitTest("Gesture: coarse content sequence needs idle gap before top-edge closing") {
         var recognizer = TopEdgeGestureRecognizer(configuration: .init(cooldown: 0))
@@ -94,11 +94,11 @@ let gestureTests: [UnitTest] = [
     },
     UnitTest("Gesture: leaving top edge discards partial close distance") {
         var recognizer = TopEdgeGestureRecognizer(configuration: .init(cooldown: 0))
-        try expect(recognizer.process(gestureSample(time: 1, delta: 60), trayIsVisible: true) == nil)
+        try expect(recognizer.process(gestureSample(time: 1, delta: 30), trayIsVisible: true) == nil)
         var away = gestureSample(time: 1.1, delta: 100)
         away.pointer.y = 700
         try expect(recognizer.process(away, trayIsVisible: true) == nil)
-        try expect(recognizer.process(gestureSample(time: 1.2, delta: 30), trayIsVisible: true) == nil)
+        try expect(recognizer.process(gestureSample(time: 1.2, delta: 20), trayIsVisible: true) == nil)
     },
     UnitTest("Gesture: legacy close default upgrades without changing opening preferences") {
         let data = Data(#"{"activationDistance":6,"revealThreshold":55,"hideThreshold":28,"cooldown":1}"#.utf8)
@@ -106,7 +106,11 @@ let gestureTests: [UnitTest] = [
         try expectEqual(config.revealThreshold, 55)
         try expectEqual(config.activationDistance, 6)
         try expectEqual(config.cooldown, 1)
-        try expectEqual(config.hideThreshold, 84)
+        try expectEqual(config.hideThreshold, 50)
+        let previousDefault = TopEdgeGestureConfiguration(hideThreshold: 84)
+        let migrated = try JSONDecoder().decode(
+            TopEdgeGestureConfiguration.self, from: JSONEncoder().encode(previousDefault))
+        try expectEqual(migrated.hideThreshold, 50)
         let custom = TopEdgeGestureConfiguration(revealThreshold: 31, hideThreshold: 110)
         let roundTrip = try JSONDecoder().decode(TopEdgeGestureConfiguration.self, from: JSONEncoder().encode(custom))
         try expectEqual(roundTrip, custom)

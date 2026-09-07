@@ -94,7 +94,7 @@ seconds, with local recovery attempted before remote flushing.
 - Put the pointer within the configured top-edge distance and deliberately
   scroll down to reveal TopDrop on that display. To dismiss by scrolling, move
   back to the screen's top edge and scroll up firmly. Opening effort is unchanged
-  (42 pt by default); closing defaults to 84 pt. Scrolling within the tray or its
+  (42 pt by default); closing defaults to 50 pt. Scrolling within the tray or its
   24 pt edge buffer only browses content, even if the pointer moves to the top
   mid-gesture. Escape, clicking outside, and Hide still dismiss immediately.
 - Notes opens either the searchable collection or one full-space temporary

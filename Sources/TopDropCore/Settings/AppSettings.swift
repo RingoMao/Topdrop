@@ -9,7 +9,7 @@ public struct TopEdgeGestureConfiguration: Codable, Equatable, Sendable {
     public init(
         activationDistance: Double = 4,
         revealThreshold: Double = 42,
-        hideThreshold: Double = 84,
+        hideThreshold: Double = 50,
         cooldown: TimeInterval = 0.75
     ) {
         self.activationDistance = max(1, activationDistance)
@@ -24,12 +24,12 @@ public struct TopEdgeGestureConfiguration: Codable, Equatable, Sendable {
 
     public init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
-        let savedHide = try values.decodeIfPresent(Double.self, forKey: .hideThreshold) ?? 84
+        let savedHide = try values.decodeIfPresent(Double.self, forKey: .hideThreshold) ?? 50
         self.init(
             activationDistance: try values.decodeIfPresent(Double.self, forKey: .activationDistance) ?? 4,
             revealThreshold: try values.decodeIfPresent(Double.self, forKey: .revealThreshold) ?? 42,
-            // Upgrade the old overly-sensitive default, not a user's custom setting.
-            hideThreshold: savedHide == 28 ? 84 : savedHide,
+            // Replace both earlier defaults; preserve other custom thresholds.
+            hideThreshold: savedHide == 28 || savedHide == 84 ? 50 : savedHide,
             cooldown: try values.decodeIfPresent(Double.self, forKey: .cooldown) ?? 0.75
         )
     }
