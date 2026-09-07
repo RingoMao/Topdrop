@@ -167,7 +167,7 @@ private func testScreenshotPartialWriteStabilization() async throws {
         stabilizationPolicy: ScreenshotStabilizationPolicy(
             pollInterval: .milliseconds(30),
             requiredMatchingSamples: 3,
-            maximumAttempts: 30,
+            maximumAttempts: 100,
             eventCoalescingDelay: .zero
         )
     )
@@ -175,9 +175,12 @@ private func testScreenshotPartialWriteStabilization() async throws {
     let partialURL = source.appendingPathComponent("partial.png")
     try Data(completeData.prefix(24)).write(to: partialURL)
     let writer = Task {
-        try await Task.sleep(for: .milliseconds(45))
+        // Pause longer than the metadata-only stabilization window. A partial
+        // image must remain pending even when size and mtime briefly stop moving.
+        try await Task.sleep(for: .milliseconds(180))
         try completeData.write(to: partialURL)
     }
+    defer { writer.cancel() }
     let imported = try await library.importScreenshot(at: partialURL)
     try await writer.value
     try expect(imported != nil)

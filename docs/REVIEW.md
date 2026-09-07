@@ -22,6 +22,11 @@ Apache-2.0 license. The initial Git commit is retained without rewriting history
 All four regressions failed before the fixes and passed afterward.
 The complete custom Swift runner passes **165/165** tests locally.
 
+Clean-runner retesting also exposed partial screenshot files whose metadata
+stopped changing before their image container was complete. Stabilization now
+checks image readiness, and the partial-write test deliberately pauses longer
+than the metadata window before completing its fixture.
+
 ## Cleanup
 
 - Clipboard UI split into root/status/utilities/rows; annotation UI split into

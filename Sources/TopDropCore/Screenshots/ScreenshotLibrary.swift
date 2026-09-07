@@ -601,7 +601,13 @@ public actor ScreenshotLibrary {
                 previous = current
                 matchingSamples = 1
             }
-            if matchingSamples >= stabilizationPolicy.requiredMatchingSamples {
+            // A writer can pause without changing size/mtime while the image
+            // container is still incomplete. Stable metadata alone is not ready.
+            if matchingSamples >= stabilizationPolicy.requiredMatchingSamples,
+                let source = CGImageSourceCreateWithURL(url as CFURL, nil),
+                CGImageSourceGetStatus(source) == .statusComplete,
+                (try? AnnotationRenderer.sourcePixelSize(at: url)) != nil
+            {
                 return current
             }
             if attempt + 1 < stabilizationPolicy.maximumAttempts,
