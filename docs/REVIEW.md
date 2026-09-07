@@ -50,8 +50,14 @@ than the metadata window before completing its fixture.
   release helpers now compare actual filesystem paths. A CI-only watch-test
   timing assumption was replaced with a bounded wait for the real transition.
 - Source credential/path/generated-file audit: passed (heuristic, not formal).
-- Release/source rebuild and GitHub CI outcomes are reported in the delivery
-  commit/task. Package verification does not prove real-device behavior.
+- Independent source-ZIP rebuild in a temporary path containing spaces: passed,
+  including all 165 regressions and package verification. Both binaries are
+  arm64, hardened, signature-valid and retain Apple Events entitlement; ZIPs
+  pass integrity checks. The archive matches all 140 tracked source files.
+- GitHub's clean macos-26 runner passed the complete pipeline at application
+  commit \`5a1a7bd\` ([run](https://github.com/RingoMao/Topdrop/actions/runs/34074182110)).
+  Official Actions were subsequently pinned to Node-24-based v7.0.1 to remove
+  deprecated-runtime warnings. Package verification does not prove device behavior.
 
 ## Remaining release gates
 
