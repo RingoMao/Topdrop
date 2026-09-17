@@ -3,6 +3,7 @@ import TopDropCore
 
 struct SettingsView: View {
     @ObservedObject var settings: AppSettingsModel
+    @ObservedObject var keyboardLight: KeyboardLightModel
     @ObservedObject var notes: NotesViewModel
     @ObservedObject var clipboard: ClipboardMonitor
     @ObservedObject var launchAtLogin: LaunchAtLoginManager
@@ -19,6 +20,8 @@ struct SettingsView: View {
         TabView {
             generalTab
                 .tabItem { Label("General", systemImage: "gearshape") }
+            keyboardTab
+                .tabItem { Label("Keyboard", systemImage: "keyboard") }
             notesTab
                 .tabItem { Label("Notes", systemImage: "note.text") }
             clipboardTab
@@ -69,6 +72,80 @@ struct SettingsView: View {
                     Text(message).font(.caption).foregroundStyle(.secondary)
                 }
             }
+        }
+        .formStyle(.grouped)
+    }
+
+    private var keyboardTab: some View {
+        Form {
+            Section("Keyboard light") {
+                Toggle(
+                    "On",
+                    isOn: Binding(
+                        get: { settings.value.keyboardLight.enabled },
+                        set: { value in
+                            settings.update {
+                                $0.keyboardLight.managed = true; $0.keyboardLight.enabled = value
+                            }
+                        }
+                    ))
+                Picker(
+                    "Control",
+                    selection: Binding(
+                        get: { settings.value.keyboardLight.mode },
+                        set: { value in settings.update { $0.keyboardLight.mode = value } }
+                    )
+                ) {
+                    Text("Automatic · Codex").tag(KeyboardLightMode.automatic)
+                    Text("Manual").tag(KeyboardLightMode.manual)
+                }
+                .disabled(!settings.value.keyboardLight.enabled)
+                if settings.value.keyboardLight.mode == .manual {
+                    Picker(
+                        "Color",
+                        selection: Binding(
+                            get: { settings.value.keyboardLight.color },
+                            set: { value in settings.update { $0.keyboardLight.color = value } }
+                        )
+                    ) {
+                        Text("Working · Orange").tag(KeyboardLightColor.working)
+                        Text("Attention · Red").tag(KeyboardLightColor.attention)
+                        Text("Idle · Mint").tag(KeyboardLightColor.done)
+                        Text("Custom").tag(KeyboardLightColor.custom)
+                    }
+                    .disabled(!settings.value.keyboardLight.enabled)
+                    if settings.value.keyboardLight.color == .custom {
+                        Slider(value: settings.binding(for: \.keyboardLight.hue), in: 0...255) { Text("Hue") }
+                        Slider(value: settings.binding(for: \.keyboardLight.saturation), in: 0...255) {
+                            Text("Saturation")
+                        }
+                        Slider(value: settings.binding(for: \.keyboardLight.brightness), in: 0...255) {
+                            Text("Brightness")
+                        }
+                    }
+                }
+                HStack {
+                    Text(keyboardLight.status).font(.callout)
+                    Spacer()
+                    Button("Refresh") { keyboardLight.refresh() }
+                }
+                if let updated = keyboardLight.lastUpdated {
+                    LabeledContent("Last sent") { Text(updated, style: .time) }
+                }
+                if let event = keyboardLight.latestEvent, settings.value.keyboardLight.mode == .automatic {
+                    LabeledContent("Last Codex event") { Text(event, style: .relative) }
+                }
+                Text("Orange: working. Red: attention. Mint: idle. Manual stays selected until you switch back.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Section {
+                Text(
+                    "Supports Keychron Q11 and ZUOHE ST68 over USB. Reconnects automatically after wake or unplugging.")
+                Text(
+                    "Turning on moves light control into TopDrop. Existing Codex status hooks stay in place. Quit TopDrop turns the light off."
+                )
+            }
+            .font(.caption).foregroundStyle(.secondary)
         }
         .formStyle(.grouped)
     }

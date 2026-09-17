@@ -16,6 +16,7 @@ or notarized**. This is not a claim of production readiness.
 - Live screen color picker with hexadecimal preview.
 - Native menu-bar entry with quick access to TopDrop and clipboard controls.
 - Keep Awake, Finder hidden-file shortcut, and blank files you can paste in Finder.
+- QMK keyboard status light: automatic Codex colors, manual control, on/off, and reconnect recovery.
 
 TopDrop does not implement fan control or manage third-party menu-bar items.
 Universal Clipboard origin and delivery to another Notes device cannot be verified

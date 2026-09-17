@@ -91,3 +91,12 @@ with the exact packaged app from `dist/TopDrop.app`.
 - [ ] App and source ZIP integrity checks pass and neither archive contains
       generated build directories.
 - [ ] Notes/clipboard contents are absent from OSLog diagnostics.
+
+## Keyboard light
+
+- [ ] First On retires the old light service and detects the Q11/ST68.
+- [ ] Manual colors/custom brightness remain selected across status events and restart.
+- [ ] Off, Refresh, automatic transitions, unplug/replug and wake recover correctly.
+- [ ] Timeout/disconnect errors are visible and a later retry succeeds.
+- [ ] A second TopDrop cannot acquire the hardware controller lock.
+- [ ] Quit turns the light off; login launches the saved integration when configured.

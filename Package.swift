@@ -11,10 +11,15 @@ let package = Package(
         .executable(name: "TopDrop", targets: ["TopDropApp"]),
         .executable(name: "TopDropNotesWorker", targets: ["TopDropNotesWorker"]),
         .executable(name: "TopDropTests", targets: ["TopDropTests"]),
+        .executable(name: "TopDropKeyboardLight", targets: ["TopDropKeyboardLight"]),
     ],
     targets: [
         .executableTarget(name: "TopDropNotesWorker", dependencies: ["TopDropCore"]),
         .executableTarget(name: "TopDropNotesWorkerFixture"),
+        .executableTarget(
+            name: "TopDropKeyboardLight",
+            linkerSettings: [.linkedFramework("IOKit"), .linkedFramework("CoreFoundation")]
+        ),
         .target(
             name: "TopDropCore",
             linkerSettings: [

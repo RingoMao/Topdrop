@@ -74,6 +74,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var screenshotFolderBookmark: Data?
     public var screenshotFolderDisplayPath: String?
     public var completedOnboarding: Bool
+    public var keyboardLight = KeyboardLightSettings()
     public var accessories: [TopDropAccessory]
 
     public init(
@@ -119,6 +120,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         case screenshotFolderBookmark
         case screenshotFolderDisplayPath
         case completedOnboarding
+        case keyboardLight
         case accessories
     }
 
@@ -177,6 +179,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
                 Bool.self,
                 forKey: .completedOnboarding
             ) ?? false
+        keyboardLight = try values.decodeIfPresent(KeyboardLightSettings.self, forKey: .keyboardLight) ?? .init()
         accessories = TopDropAccessory.normalized(
             try values.decodeIfPresent([TopDropAccessory].self, forKey: .accessories)
                 ?? TopDropAccessory.defaults
@@ -203,6 +206,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
             forKey: .screenshotFolderDisplayPath
         )
         try values.encode(completedOnboarding, forKey: .completedOnboarding)
+        try values.encode(keyboardLight, forKey: .keyboardLight)
         try values.encode(TopDropAccessory.normalized(accessories), forKey: .accessories)
     }
 

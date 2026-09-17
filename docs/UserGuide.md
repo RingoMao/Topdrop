@@ -207,3 +207,10 @@ doing so makes existing encrypted history unreadable. Use the in-app recovery
 retry and preserve ciphertext when access fails.
 
 TopDrop is GPL-3.0 software. See `LICENSE` and `THIRD_PARTY_NOTICES.md`.
+
+## Keyboard light
+
+Open Settings → Keyboard to turn the supported QMK backlight on or off, follow
+Codex automatically, or select a manual color. Refresh reconnects and resends the
+current choice. Last sent and Last Codex event help distinguish a disconnected
+keyboard from an old status. See [keyboard recovery details](KEYBOARD_LIGHT.md).

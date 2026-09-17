@@ -13,6 +13,10 @@ for EXECUTABLE in "${APP}/Contents/MacOS/TopDrop" "${WORKER}"; do
     /usr/bin/codesign -d --entitlements :- "${EXECUTABLE}" 2>/dev/null \
         | /usr/bin/plutil -extract 'com\.apple\.security\.automation\.apple-events' raw -o - - | /usr/bin/grep -x true >/dev/null
 done
+KEYBOARD="${APP}/Contents/MacOS/TopDropKeyboardLight"
+[[ "$(/usr/bin/lipo -archs "${KEYBOARD}")" == arm64 ]] || exit 1
+/usr/bin/codesign --verify --strict "${KEYBOARD}"
+/usr/bin/codesign -d --verbose=4 "${KEYBOARD}" 2>&1 | /usr/bin/grep 'flags=.*runtime' >/dev/null
 /usr/libexec/PlistBuddy -c 'Print NSScreenCaptureUsageDescription' "${APP}/Contents/Info.plist" >/dev/null
 [[ -d "${APP}/Contents/Resources/TopDrop_TopDropApp.bundle" ]] || exit 1
 for ZIP in TopDrop.app.zip TopDrop-source.zip; do /usr/bin/unzip -tq "${DIST}/${ZIP}"; done

@@ -13,6 +13,7 @@ final class ApplicationCoordinator: NSObject {
     let menuBar = MenuBarController()
     let accessories = TopDropAccessoryManager()
     let devTools = DevToolsModel()
+    let keyboardLight = KeyboardLightModel()
     let notes: NotesViewModel
     let screenshots: ScreenshotViewModel
 
@@ -93,6 +94,7 @@ final class ApplicationCoordinator: NSObject {
         NotificationCenter.default.post(name: .topDropOCRWillStop, object: nil)
         notes.beginTermination()
         devTools.stop()
+        keyboardLight.beginTermination()
         for observer in notesLifecycleObservers { NSWorkspace.shared.notificationCenter.removeObserver(observer) }
         notesLifecycleObservers.removeAll()
         logger.info("Termination phase: stop event ingress")
@@ -109,6 +111,7 @@ final class ApplicationCoordinator: NSObject {
     func finishTerminationCleanup() async {
         guard !cleanupHasCompleted else { return }
         cleanupHasCompleted = true
+        await keyboardLight.shutdown()
         logger.info("Termination phase: flush Notes")
         await notes.flushPendingEdit()
         logger.info("Termination phase: flush annotation editors")
@@ -231,6 +234,7 @@ final class ApplicationCoordinator: NSObject {
     }
 
     private func apply(_ value: AppSettings) {
+        keyboardLight.apply(value.keyboardLight)
         edgeMonitor.update(configuration: value.gesture)
         panel.updateHeight(value.panelHeight)
         if clipboard.isPaused != value.clipboardPaused {
@@ -277,6 +281,7 @@ final class ApplicationCoordinator: NSObject {
     private func showSettings() {
         let view = SettingsView(
             settings: settings,
+            keyboardLight: keyboardLight,
             notes: notes,
             clipboard: clipboard,
             launchAtLogin: launchAtLogin,

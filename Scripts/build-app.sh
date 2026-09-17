@@ -81,6 +81,13 @@ env DEVELOPER_DIR="${DEVELOPER_DIRECTORY}" SDKROOT="${SDK_PATH}" \
 /usr/bin/codesign --force --sign - --options runtime --identifier com.personal.TopDrop.NotesWorker \
     --entitlements "${PROJECT_ROOT}/Packaging/TopDrop.entitlements" "${CONTENTS}/MacOS/TopDropNotesWorker"
 
+env DEVELOPER_DIR="${DEVELOPER_DIRECTORY}" SDKROOT="${SDK_PATH}" \
+    /usr/bin/xcrun --sdk macosx swift build --disable-sandbox --configuration release \
+    --arch arm64 --scratch-path "${BUILD_ROOT}" --jobs 1 --product TopDropKeyboardLight
+/usr/bin/ditto "${BIN_PATH}/TopDropKeyboardLight" "${CONTENTS}/MacOS/TopDropKeyboardLight"
+/usr/bin/codesign --force --sign - --options runtime --identifier com.personal.TopDrop.KeyboardLight \
+    "${CONTENTS}/MacOS/TopDropKeyboardLight"
+
 /usr/bin/ditto "${BIN_PATH}/TopDrop" "${CONTENTS}/MacOS/TopDrop"
 /usr/bin/ditto "${PROJECT_ROOT}/Packaging/Info.plist" "${CONTENTS}/Info.plist"
 if [[ -d "${BIN_PATH}/TopDrop_TopDropApp.bundle" ]]; then

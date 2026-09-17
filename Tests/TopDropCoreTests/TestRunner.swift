@@ -7,7 +7,7 @@ enum TopDropTestRunner {
         let allTests =
             coreTests + gestureTests + notesTests + notesSyncTests + clipboardTests + screenshotTests + annotationTests
             + onboardingTests + appFeatureTests + unifiedMediaFeedTests + trayPanelLayoutTests
-            + screenColorSamplerTests + imageTextRecognitionTests + devToolsTests
+            + keyboardLightTests + screenColorSamplerTests + imageTextRecognitionTests + devToolsTests
         let filters = CommandLine.arguments.dropFirst()
         let tests =
             filters.isEmpty
