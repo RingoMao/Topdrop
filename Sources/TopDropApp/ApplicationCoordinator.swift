@@ -10,7 +10,7 @@ final class ApplicationCoordinator: NSObject {
     let clipboard = ClipboardMonitor()
     let hotKey = ClipboardHotKeyRegistrar()
     let launchAtLogin = LaunchAtLoginManager()
-    let menuBarShelf = MenuBarShelfController()
+    let menuBar = MenuBarController()
     let accessories = TopDropAccessoryManager()
     let devTools = DevToolsModel()
     let notes: NotesViewModel
@@ -19,7 +19,6 @@ final class ApplicationCoordinator: NSObject {
     private let screenshotLibrary: ScreenshotLibrary
     private let editorWindows: AnnotationEditorWindowManager
     private let edgeMonitor: EdgeEventMonitor
-    private let applicationMenuMode = MenuBarApplicationModeController()
     private var panel: TrayPanelController!
     private var settingsWindow: AuxiliaryWindowController?
     private var onboardingWindow: AuxiliaryWindowController?
@@ -42,7 +41,7 @@ final class ApplicationCoordinator: NSObject {
         super.init()
 
         configurePanel()
-        configureMenuBarShelf()
+        configureMenuBar()
         configureEdgeMonitor()
         configureHotKey()
         configureClipboardImageCapture()
@@ -78,11 +77,7 @@ final class ApplicationCoordinator: NSObject {
             clipboard.start()
             await notes.start()
             await screenshots.start()
-            if !settings.value.completedOnboarding {
-                showOnboarding()
-            } else {
-                showMenuBarShelfSetupIfNeeded()
-            }
+            if !settings.value.completedOnboarding { showOnboarding() }
             logger.info("TopDrop application services started")
         }
     }
@@ -108,15 +103,12 @@ final class ApplicationCoordinator: NSObject {
         activeColorSampler = nil
         panel?.outsideDismissalIsSuspended = true
         panel?.hide(animated: false, reason: .programmatic)
-        menuBarShelf.beginTermination()
-        applicationMenuMode.exit()
+        menuBar.beginTermination()
     }
 
     func finishTerminationCleanup() async {
         guard !cleanupHasCompleted else { return }
         cleanupHasCompleted = true
-        logger.info("Termination phase: restore native menu items")
-        await menuBarShelf.finishTermination()
         logger.info("Termination phase: flush Notes")
         await notes.flushPendingEdit()
         logger.info("Termination phase: flush annotation editors")
@@ -133,7 +125,6 @@ final class ApplicationCoordinator: NSObject {
             notes: notes,
             clipboard: clipboard,
             screenshots: screenshots,
-            menuBarShelf: menuBarShelf,
             accessories: accessories,
             devTools: devTools,
             showSettings: { [weak self] in self?.showSettings() },
@@ -142,42 +133,27 @@ final class ApplicationCoordinator: NSObject {
             },
             pickScreenColor: { [weak self] in self?.beginScreenColorSampling() },
             editScreenshot: { [weak self] item in self?.editorWindows.open(item) },
-            hide: { [weak self] in self?.hideTrayAndCollapse() }
+            hide: { [weak self] in self?.hideTray() }
         )
         panel = TrayPanelController(rootView: AnyView(root))
-        panel.onHide = { [weak self] reason in
+        panel.onHide = { [weak self] _ in
             guard let self else { return }
             notes.setTrayVisible(false)
-            applicationMenuMode.exit()
-            menuBarShelf.setTrayPresented(false)
             clipboard.cancelArrivalWatch()
-            switch reason {
-            case .escape:
-                menuBarShelf.hide()
-            case .outsideClick, .programmatic:
-                break
-            }
         }
     }
 
-    private func configureMenuBarShelf() {
-        menuBarShelf.onSettingsChange = { [weak self] shelfSettings in
-            self?.settings.update { $0.menuBarShelf = shelfSettings }
-        }
-        menuBarShelf.onFreshArrangement = { [weak self] in
-            self?.settings.update { $0.menuBarShelfSetupVersion = 0 }
-        }
-        menuBarShelf.installQuickSettings(
+    private func configureMenuBar() {
+        menuBar.installQuickSettings(
             AnyView(
-                MenuBarQuickSettingsView(
-                    shelf: menuBarShelf,
+                MenuBarView(
                     clipboard: clipboard,
                     launchAtLogin: launchAtLogin,
                     toggleTray: { [weak self] in
                         guard let self else { return }
-                        menuBarShelf.closeQuickSettings()
+                        menuBar.closeQuickSettings()
                         if panel.isVisible {
-                            hideTrayAndCollapse()
+                            hideTray()
                         } else {
                             enterTopDropMode(on: preferredScreen())
                         }
@@ -190,22 +166,10 @@ final class ApplicationCoordinator: NSObject {
                         self?.settings.update { $0.clipboardPaused.toggle() }
                     },
                     showSettings: { [weak self] in
-                        self?.menuBarShelf.closeQuickSettings()
+                        self?.menuBar.closeQuickSettings()
                         self?.showSettings()
                     },
                     quit: { NSApp.terminate(nil) }
-                )))
-        menuBarShelf.installSetupGuide(
-            AnyView(
-                MenuBarShelfSetupGuideView(
-                    shelf: menuBarShelf,
-                    done: { [weak self] in
-                        guard let self else { return }
-                        settings.update {
-                            $0.menuBarShelfSetupVersion = MenuBarShelfSetup.currentVersion
-                        }
-                        menuBarShelf.completeArrangement()
-                    }
                 )))
     }
 
@@ -221,7 +185,7 @@ final class ApplicationCoordinator: NSObject {
             case .reveal:
                 enterTopDropMode(on: screen)
             case .hide:
-                hideTrayAndCollapse()
+                hideTray()
             }
         }
     }
@@ -275,7 +239,6 @@ final class ApplicationCoordinator: NSObject {
         clipboard.setSensitiveApplicationBundleIdentifiers(
             value.excludedClipboardBundleIdentifiers
         )
-        menuBarShelf.apply(value.menuBarShelf)
         accessories.apply(value.accessories)
 
         let configuration = hotKeyConfiguration(from: value.cleanClipboardHotKey)
@@ -318,7 +281,6 @@ final class ApplicationCoordinator: NSObject {
             clipboard: clipboard,
             launchAtLogin: launchAtLogin,
             hotKey: hotKey,
-            menuBarShelf: menuBarShelf,
             accessories: accessories,
             screenshotCount: screenshots.snapshot.items.count,
             chooseScreenshotFolder: { [weak self] in self?.chooseScreenshotFolder() },
@@ -337,8 +299,7 @@ final class ApplicationCoordinator: NSObject {
                     else { return }
                     await clipboard.clearAll()
                 }
-            },
-            previewTopDrop: { [weak self] in self?.previewTopDropFromSettings() }
+            }
         )
         if let settingsWindow {
             settingsWindow.replaceRootView(AnyView(view))
@@ -355,11 +316,6 @@ final class ApplicationCoordinator: NSObject {
         }
     }
 
-    private func previewTopDropFromSettings() {
-        settingsWindow?.window?.orderOut(nil)
-        enterTopDropMode(on: preferredScreen())
-    }
-
     private func showOnboarding() {
         let view = OnboardingView(
             settings: settings,
@@ -369,7 +325,6 @@ final class ApplicationCoordinator: NSObject {
             finish: { [weak self] in
                 guard let self else { return }
                 onboardingWindow?.window?.orderOut(nil)
-                showMenuBarShelfSetupIfNeeded()
             }
         )
         if let onboardingWindow {
@@ -391,8 +346,6 @@ final class ApplicationCoordinator: NSObject {
         guard activeColorSampler == nil else { return }
         devTools.hiddenFiles.refresh()
         notes.setTrayVisible(true)
-        menuBarShelf.reveal(scheduleAutoCollapse: false)
-        menuBarShelf.setTrayPresented(true)
         panel.show(on: screen, height: settings.value.panelHeight)
         Task { [weak self] in
             guard let self else { return }
@@ -400,18 +353,12 @@ final class ApplicationCoordinator: NSObject {
             // attribution remains the app that was actually foregrounded.
             await clipboard.pollNow()
             guard panel.isVisible else { return }
-            if menuBarShelf.settings.reclaimApplicationMenus {
-                applicationMenuMode.enter()
-            }
             clipboard.beginArrivalWatch()
         }
     }
 
-    private func hideTrayAndCollapse() {
+    private func hideTray() {
         clipboard.cancelArrivalWatch()
-        menuBarShelf.hide()
-        menuBarShelf.setTrayPresented(false)
-        applicationMenuMode.exit()
         panel.hide(animated: true)
     }
 
@@ -449,10 +396,7 @@ final class ApplicationCoordinator: NSObject {
 
     private func dismissTopDropForScreenColorSampling() {
         clipboard.cancelArrivalWatch()
-        menuBarShelf.closeQuickSettings()
-        menuBarShelf.hide()
-        menuBarShelf.setTrayPresented(false)
-        applicationMenuMode.exit()
+        menuBar.closeQuickSettings()
         panel.hideImmediately()
     }
 
@@ -505,13 +449,6 @@ final class ApplicationCoordinator: NSObject {
             URL(fileURLWithPath: "/System/Applications/System Settings.app"),
             configuration: NSWorkspace.OpenConfiguration()
         )
-    }
-
-    private func showMenuBarShelfSetupIfNeeded() {
-        guard settings.value.menuBarShelfSetupVersion < MenuBarShelfSetup.currentVersion else {
-            return
-        }
-        menuBarShelf.beginFreshArrangement()
     }
 
     private func preferredScreen() -> NSScreen {

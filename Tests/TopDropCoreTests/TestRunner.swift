@@ -6,7 +6,7 @@ enum TopDropTestRunner {
     static func main() async {
         let allTests =
             coreTests + gestureTests + notesTests + notesSyncTests + clipboardTests + screenshotTests + annotationTests
-            + onboardingTests + menuBarShelfTests + unifiedMediaFeedTests + trayPanelLayoutTests
+            + onboardingTests + appFeatureTests + unifiedMediaFeedTests + trayPanelLayoutTests
             + screenColorSamplerTests + imageTextRecognitionTests + devToolsTests
         let filters = CommandLine.arguments.dropFirst()
         let tests =

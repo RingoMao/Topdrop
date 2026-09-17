@@ -119,10 +119,9 @@ seconds, with local recovery attempted before remote flushing.
 - The image editor supports any number of independently colored rounded boxes,
   arrows, and text boxes; selection, move, resize, stacking, keyboard nudging,
   zoom, undo/redo, Update Clipboard, and flattened PNG/PDF export.
-- The one-divider Scroll Shelf keeps original third-party status items native.
-  In Arrange mode, Command-drag on-demand items left of TopDrop's divider and
-  always-visible items to its right. TopDrop-owned labels, spacers, and tray
-  accessories can be reordered separately.
+- TopDrop has one native menu-bar icon. Click it for tray, clipboard, login,
+  Settings, and Quit controls. macOS manages the visibility and organization of
+  every other menu-bar item.
 
 ## Dev Tools
 

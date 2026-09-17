@@ -34,7 +34,7 @@ struct OnboardingView: View {
                 Text("Welcome to TopDrop")
                     .font(.largeTitle.bold())
                 Text(
-                    "Set up the three private data sources. TopDrop keeps Apple Notes as the source of truth. Its native Scroll Shelf uses one simple divider and needs no screen or Accessibility permission."
+                    "Set up the three private data sources. TopDrop keeps Apple Notes as the source of truth and stores its local data on this Mac."
                 )
                 .foregroundStyle(.secondary)
             }

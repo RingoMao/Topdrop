@@ -1,8 +1,7 @@
 import SwiftUI
 import TopDropCore
 
-/// Compact, TopDrop-owned actions shown inside the tray. These are separate
-/// from the native Scroll Shelf, so they remain reliable and customizable.
+/// Compact, TopDrop-owned actions shown inside the tray.
 struct TopDropAccessoryShelfView: View {
     @ObservedObject var manager: TopDropAccessoryManager
     var compact = false

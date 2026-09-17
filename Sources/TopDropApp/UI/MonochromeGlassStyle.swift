@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Adaptive monochrome chrome for TopDrop's glass tray and Scroll Shelf.
+/// Adaptive monochrome chrome for TopDrop's glass tray.
 /// Content colors (for example annotation colors and thumbnails) remain intact.
 struct TopDropNeutralGlass: View {
     @Environment(\.colorScheme) private var colorScheme

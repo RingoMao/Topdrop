@@ -6,7 +6,6 @@ struct TopDropTrayView: View {
     @ObservedObject var notes: NotesViewModel
     @ObservedObject var clipboard: ClipboardMonitor
     @ObservedObject var screenshots: ScreenshotViewModel
-    @ObservedObject var menuBarShelf: MenuBarShelfController
     @ObservedObject var accessories: TopDropAccessoryManager
     @ObservedObject var devTools: DevToolsModel
     let showSettings: () -> Void
@@ -133,7 +132,6 @@ struct TopDropTrayView: View {
                 Text("TopDrop")
                     .font(.caption.weight(.semibold))
                     .lineLimit(1)
-                shelfStateLabel
             }
             .fixedSize(horizontal: true, vertical: false)
 
@@ -233,32 +231,6 @@ struct TopDropTrayView: View {
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
-    }
-
-    private var shelfStateLabel: some View {
-        Label(shelfStateText, systemImage: shelfStateSymbol)
-            .labelStyle(.titleAndIcon)
-            .font(.caption2)
-            .foregroundStyle(menuBarShelf.state == .arranging ? Color.primary : Color.secondary)
-            .fontWeight(menuBarShelf.state == .arranging ? .semibold : .regular)
-            .lineLimit(1)
-            .help("Native Scroll Shelf is \(shelfStateText.lowercased())")
-    }
-
-    private var shelfStateText: String {
-        switch menuBarShelf.state {
-        case .hidden: "Shelf Hidden"
-        case .visible: "Shelf Visible"
-        case .arranging: "Arranging"
-        }
-    }
-
-    private var shelfStateSymbol: String {
-        switch menuBarShelf.state {
-        case .hidden: "rectangle.compress.vertical"
-        case .visible: "rectangle.expand.vertical"
-        case .arranging: "arrow.left.and.right"
-        }
     }
 
     private func dashboardDivider(

@@ -73,13 +73,12 @@ with the exact packaged app from `dist/TopDrop.app`.
       clipboard image preview.
 - [ ] PNG/PDF exports flatten correctly and use collision-safe names.
 
-## Scroll Shelf and accessories
+## Menu bar and accessories
 
-- [ ] Arrange mode highlights one native divider and follows it after
-      Command-dragging.
-- [ ] Genuine on-demand status items left of the divider reveal with TopDrop;
-      items right of it remain visible and keep native click behavior.
-- [ ] Labels and spacers persist and reorder independently.
+- [ ] The TopDrop template icon remains visible and legible in light, dark, and
+      high-contrast menu bars.
+- [ ] Clicking the icon opens quick actions for the tray, clipboard, login,
+      Settings, and Quit without creating extra status items.
 - [ ] Built-in and Apple Shortcut accessories reorder, persist, and show errors
       without blocking Notes or Clipboard.
 

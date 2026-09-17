@@ -14,10 +14,10 @@ or notarized**. This is not a claim of production readiness.
 - Encrypted clipboard history, one-click Make Current, formatting cleanup and color previews.
 - Image annotations, undo/redo, PNG/PDF export and on-device Vision OCR.
 - Live screen color picker with hexadecimal preview.
-- One-divider native Scroll Shelf: original third-party menu items stay in macOS.
+- Native menu-bar entry with quick access to TopDrop and clipboard controls.
 - Keep Awake, Finder hidden-file shortcut, and blank files you can paste in Finder.
 
-TopDrop does not implement fan control or a captured third-party proxy bar.
+TopDrop does not implement fan control or manage third-party menu-bar items.
 Universal Clipboard origin and delivery to another Notes device cannot be verified
 by TopDrop; its UI reports only what reached or was written on this Mac.
 

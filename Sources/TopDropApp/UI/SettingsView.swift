@@ -7,13 +7,11 @@ struct SettingsView: View {
     @ObservedObject var clipboard: ClipboardMonitor
     @ObservedObject var launchAtLogin: LaunchAtLoginManager
     @ObservedObject var hotKey: ClipboardHotKeyRegistrar
-    @ObservedObject var menuBarShelf: MenuBarShelfController
     @ObservedObject var accessories: TopDropAccessoryManager
     let screenshotCount: Int
     let chooseScreenshotFolder: () -> Void
     let importExistingScreenshots: () -> Void
     let clearClipboardHistory: () -> Void
-    let previewTopDrop: () -> Void
 
     @State private var selectedAccountID = ""
 
@@ -29,11 +27,6 @@ struct SettingsView: View {
                 .tabItem { Label("Screenshots", systemImage: "photo.on.rectangle") }
             TopDropAccessoryStoreView(manager: accessories)
                 .tabItem { Label("Accessories", systemImage: "sparkles.rectangle.stack") }
-            MenuBarShelfSettingsView(
-                shelf: menuBarShelf,
-                previewTopDrop: previewTopDrop
-            )
-            .tabItem { Label("Menu Bar", systemImage: "menubar.rectangle") }
         }
         .padding(20)
         .frame(minWidth: 820, minHeight: 560)

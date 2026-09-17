@@ -74,8 +74,6 @@ public struct AppSettings: Codable, Equatable, Sendable {
     public var screenshotFolderBookmark: Data?
     public var screenshotFolderDisplayPath: String?
     public var completedOnboarding: Bool
-    public var menuBarShelf: MenuBarShelfSettings
-    public var menuBarShelfSetupVersion: Int
     public var accessories: [TopDropAccessory]
 
     public init(
@@ -91,8 +89,6 @@ public struct AppSettings: Codable, Equatable, Sendable {
         screenshotFolderBookmark: Data? = nil,
         screenshotFolderDisplayPath: String? = nil,
         completedOnboarding: Bool = false,
-        menuBarShelf: MenuBarShelfSettings = .init(),
-        menuBarShelfSetupVersion: Int = 0,
         accessories: [TopDropAccessory] = TopDropAccessory.defaults
     ) {
         self.gesture = gesture
@@ -107,8 +103,6 @@ public struct AppSettings: Codable, Equatable, Sendable {
         self.screenshotFolderBookmark = screenshotFolderBookmark
         self.screenshotFolderDisplayPath = screenshotFolderDisplayPath
         self.completedOnboarding = completedOnboarding
-        self.menuBarShelf = menuBarShelf
-        self.menuBarShelfSetupVersion = max(0, menuBarShelfSetupVersion)
         self.accessories = TopDropAccessory.normalized(accessories)
     }
 
@@ -125,12 +119,7 @@ public struct AppSettings: Codable, Equatable, Sendable {
         case screenshotFolderBookmark
         case screenshotFolderDisplayPath
         case completedOnboarding
-        case menuBarShelf
-        case menuBarShelfSetupVersion
         case accessories
-        case legacyCompletedMenuBarShelfSetup = "completedMenuBarShelfSetup"
-        /// Read-only migration key used by the former three-zone design.
-        case legacyMenuBarZones = "menuBarZones"
     }
 
     public init(from decoder: Decoder) throws {
@@ -188,24 +177,6 @@ public struct AppSettings: Codable, Equatable, Sendable {
                 Bool.self,
                 forKey: .completedOnboarding
             ) ?? false
-        menuBarShelf =
-            try values.decodeIfPresent(
-                MenuBarShelfSettings.self,
-                forKey: .menuBarShelf
-            ) ?? values.decodeIfPresent(
-                MenuBarShelfSettings.self,
-                forKey: .legacyMenuBarZones
-            ) ?? .init()
-        menuBarShelfSetupVersion = MenuBarShelfSetup.migratedVersion(
-            encodedVersion: try values.decodeIfPresent(
-                Int.self,
-                forKey: .menuBarShelfSetupVersion
-            ),
-            legacyCompleted: try values.decodeIfPresent(
-                Bool.self,
-                forKey: .legacyCompletedMenuBarShelfSetup
-            )
-        )
         accessories = TopDropAccessory.normalized(
             try values.decodeIfPresent([TopDropAccessory].self, forKey: .accessories)
                 ?? TopDropAccessory.defaults
@@ -232,8 +203,6 @@ public struct AppSettings: Codable, Equatable, Sendable {
             forKey: .screenshotFolderDisplayPath
         )
         try values.encode(completedOnboarding, forKey: .completedOnboarding)
-        try values.encode(menuBarShelf, forKey: .menuBarShelf)
-        try values.encode(menuBarShelfSetupVersion, forKey: .menuBarShelfSetupVersion)
         try values.encode(TopDropAccessory.normalized(accessories), forKey: .accessories)
     }
 
